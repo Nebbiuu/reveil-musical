@@ -13,22 +13,26 @@ export interface ResilientDecoratorOptions {
 
 export class ResilientMusicProviderDecorator implements IMusicProvider {
   public readonly providerName: string;
-  private readonly rateLimiter?: RateLimiter;
-  private readonly circuitBreaker?: CircuitBreaker;
-  private readonly retryPolicy?: RetryPolicy;
+  private readonly rateLimiter: RateLimiter | undefined;
+  private readonly circuitBreaker: CircuitBreaker | undefined;
+  private readonly retryPolicy: RetryPolicy | undefined;
+
+  private readonly logger: ILogger | undefined;
 
   constructor(
     private readonly inner: IMusicProvider,
     options: ResilientDecoratorOptions,
-    private readonly logger: ILogger,
+    logger?: ILogger,
   ) {
     this.providerName = `${inner.providerName}:Resilient`;
     this.rateLimiter = options.rateLimiter;
     this.circuitBreaker = options.circuitBreaker;
     this.retryPolicy = options.retryPolicy;
+    this.logger = logger;
   }
 
   public async resolveTrack(query: string): Promise<Track> {
+    this.logger?.debug(`Executing resilient resolution for ${this.inner.providerName}`, { query });
     const executeCall = async (): Promise<Track> => {
       if (this.rateLimiter) {
         await this.rateLimiter.acquire();

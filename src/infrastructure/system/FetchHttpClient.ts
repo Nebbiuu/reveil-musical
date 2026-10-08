@@ -7,13 +7,15 @@ export class FetchHttpClient implements IHttpClient {
     const timeoutMs = options?.timeoutMs ?? this.defaultTimeoutMs;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-
     try {
-      const response = await fetch(url, {
+      const init: RequestInit = {
         method: 'GET',
-        headers: options?.headers,
         signal: controller.signal,
-      });
+      };
+      if (options?.headers) {
+        init.headers = options.headers;
+      }
+      const response = await fetch(url, init);
 
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
