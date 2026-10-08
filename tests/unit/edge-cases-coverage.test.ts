@@ -12,15 +12,8 @@ import { DayOfWeek } from '../../src/domain/models/DayOfWeek.js';
 import { Weather } from '../../src/domain/models/Weather.js';
 import { IMusicProvider } from '../../src/domain/ports/IMusicProvider.js';
 import { INotificationChannel, NotificationPayload } from '../../src/domain/ports/INotificationChannel.js';
-import { Track } from '../../src/domain/models/Track.js';
 import { buildApplicationContainer } from '../../src/composition-root/container.js';
-
-class AlwaysFailingProvider implements IMusicProvider {
-  public readonly providerName = 'AlwaysFailing';
-  public async resolveTrack(_q: string): Promise<Track> {
-    throw new Error('Total failure');
-  }
-}
+import { asTrackResolver } from '../helpers/trackResolver.js';
 
 class ChannelWithFailure implements INotificationChannel {
   constructor(public readonly channelType: string, private readonly fail: boolean) {}
@@ -70,10 +63,10 @@ describe('Targeted Edge Cases for Comprehensive Branch Coverage', () => {
 
     const useCase = new SendWakeUpUseCase({
       userPreferencesProvider: userPrefs,
-      musicProvider: {
+      trackResolver: asTrackResolver({
         providerName: 'SimpleMusic',
         resolveTrack: async () => ({ title: 'T', artist: 'A' }),
-      },
+      }),
       trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
       notificationRegistry: registry,
       clock,
@@ -109,7 +102,12 @@ describe('Targeted Edge Cases for Comprehensive Branch Coverage', () => {
 
     const useCase = new SendWakeUpUseCase({
       userPreferencesProvider: userPrefs,
-      musicProvider: new AlwaysFailingProvider(),
+      trackResolver: asTrackResolver({
+        providerName: 'AlwaysFailingProvider',
+        resolveTrack: async () => {
+          throw new Error('Total failure');
+        },
+      }),
       trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
       notificationRegistry: registry,
       clock,

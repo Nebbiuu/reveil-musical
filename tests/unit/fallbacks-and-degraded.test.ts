@@ -15,6 +15,7 @@ import { Weather } from '../../src/domain/models/Weather.js';
 import { MusicProviderChain } from '../../src/infrastructure/music/MusicProviderChain.js';
 import { LocalFallbackMusicAdapter } from '../../src/infrastructure/music/LocalFallbackMusicAdapter.js';
 import { ValidationError, UserNotFoundError, MusicProviderError, NotificationChannelError } from '../../src/domain/errors/DomainErrors.js';
+import { asTrackResolver } from '../helpers/trackResolver.js';
 
 class MockChannel implements INotificationChannel {
   public attempts = 0;
@@ -87,7 +88,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
     it('should throw ValidationError on empty or whitespace userId', async () => {
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: new NotificationChannelRegistry([], logger),
         clock,
@@ -109,7 +110,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
     it('should throw ValidationError on invalid dayOfWeek', async () => {
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: new NotificationChannelRegistry([], logger),
         clock,
@@ -128,7 +129,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
     it('should throw ValidationError on invalid weather', async () => {
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: new NotificationChannelRegistry([], logger),
         clock,
@@ -147,7 +148,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
     it('should throw UserNotFoundError when user does not exist', async () => {
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: new NotificationChannelRegistry([], logger),
         clock,
@@ -165,14 +166,14 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
   });
 
   describe('Weather Not Covered Degraded Mode', () => {
-    it('should switch to user fallback track and mark degraded: true when weather is uncovered', async () => {
+    it('should switch to user fallback track and keep degraded: false when weather is uncovered (normal business case)', async () => {
       const emailChannel = new MockChannel('EMAIL', false);
       const registry = new NotificationChannelRegistry([emailChannel], logger);
       const musicProvider = new LocalFallbackMusicAdapter(logger);
 
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider,
+        trackResolver: asTrackResolver(musicProvider),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: registry,
         clock,
@@ -186,7 +187,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
       // user-partial has NO entry for NEIGE
       const result = await useCase.sendWakeUp('user-partial', DayOfWeek.MERCREDI, Weather.NEIGE);
 
-      expect(result.degraded).toBe(true);
+      expect(result.degraded).toBe(false);
       expect(result.channelUsed).toBe('EMAIL');
       expect(result.track).toBeDefined();
     });
@@ -203,7 +204,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
 
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: chain,
+        trackResolver: chain,
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: registry,
         clock,
@@ -228,7 +229,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
 
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: failingOnSunHit,
+        trackResolver: asTrackResolver(failingOnSunHit),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: registry,
         clock,
@@ -254,7 +255,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
 
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: registry,
         clock,
@@ -280,7 +281,7 @@ describe('Fallbacks & Degraded Modes Resilience Tests', () => {
 
       const useCase = new SendWakeUpUseCase({
         userPreferencesProvider: userPrefs,
-        musicProvider: new LocalFallbackMusicAdapter(logger),
+        trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
         trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
         notificationRegistry: registry,
         clock,

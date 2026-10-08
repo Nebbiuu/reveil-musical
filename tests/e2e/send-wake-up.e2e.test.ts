@@ -73,7 +73,7 @@ describe('End-to-End sendWakeUp Pipeline Tests (with Fakes, zero real network)',
     });
   });
 
-  it('DEGRADED WEATHER FLOW: user-bob-partial-weather wakes up on PLUIE -> weather not covered -> fallback track -> degraded', async () => {
+  it('UNCOVERED WEATHER FLOW: user-bob-partial-weather wakes up on PLUIE -> weather not covered -> fallback track -> not degraded', async () => {
     // user-bob-partial-weather only has SOLEIL covered in default seed
     const result = await container.sendWakeUpUseCase.sendWakeUp(
       'user-bob-partial-weather',
@@ -81,7 +81,7 @@ describe('End-to-End sendWakeUp Pipeline Tests (with Fakes, zero real network)',
       Weather.PLUIE,
     );
 
-    expect(result.degraded).toBe(true);
+    expect(result.degraded).toBe(false);
     expect(result.channelUsed).toBe('SMS'); // Bob's preferred channel
     expect(result.track).toBeDefined();
   });

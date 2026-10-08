@@ -14,6 +14,7 @@ import { DefaultTrackSelectionStrategy } from '../../src/domain/strategies/Defau
 import { SendWakeUpUseCase } from '../../src/application/use-cases/SendWakeUpUseCase.js';
 import { DayOfWeek } from '../../src/domain/models/DayOfWeek.js';
 import { Weather } from '../../src/domain/models/Weather.js';
+import { asTrackResolver } from '../helpers/trackResolver.js';
 
 // ============================================================================
 // NEW CHANNEL IMPLEMENTATION (1 new class, OCP demonstration)
@@ -69,7 +70,7 @@ describe('Open/Closed Principle (OCP) - New Notification Channel Test', () => {
 
     const useCase = new SendWakeUpUseCase({
       userPreferencesProvider: userPrefs,
-      musicProvider: new LocalFallbackMusicAdapter(logger),
+      trackResolver: asTrackResolver(new LocalFallbackMusicAdapter(logger)),
       trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
       notificationRegistry: registry,
       clock,

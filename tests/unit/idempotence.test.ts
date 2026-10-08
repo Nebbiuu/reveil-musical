@@ -12,6 +12,7 @@ import { IMusicProvider } from '../../src/domain/ports/IMusicProvider.js';
 import { Track } from '../../src/domain/models/Track.js';
 import { DayOfWeek } from '../../src/domain/models/DayOfWeek.js';
 import { Weather } from '../../src/domain/models/Weather.js';
+import { asTrackResolver } from '../helpers/trackResolver.js';
 
 class SpyMusicProvider implements IMusicProvider {
   public readonly providerName = 'SpyMusic';
@@ -62,7 +63,7 @@ describe('Idempotency Tests (userId + date)', () => {
 
     useCase = new SendWakeUpUseCase({
       userPreferencesProvider: userPrefs,
-      musicProvider: spyMusic,
+      trackResolver: asTrackResolver(spyMusic),
       trackSelectionStrategy: new DefaultTrackSelectionStrategy(),
       notificationRegistry: registry,
       clock,

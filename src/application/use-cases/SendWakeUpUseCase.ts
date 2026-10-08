@@ -4,7 +4,7 @@ import { WakeUpResult } from '../../domain/models/WakeUpResult.js';
 import { Track } from '../../domain/models/Track.js';
 import { ValidationError, UserNotFoundError } from '../../domain/errors/DomainErrors.js';
 import { IUserPreferencesProvider } from '../../domain/ports/IUserPreferencesProvider.js';
-import { IMusicProvider } from '../../domain/ports/IMusicProvider.js';
+import { ITrackResolver } from '../../domain/ports/ITrackResolver.js';
 import { ITrackSelectionStrategy } from '../../domain/ports/ITrackSelectionStrategy.js';
 import { IClock } from '../../domain/ports/IClock.js';
 import { ILogger } from '../../domain/ports/ILogger.js';
@@ -14,7 +14,7 @@ import { INotificationRegistry } from '../ports/INotificationRegistry.js';
 
 export interface SendWakeUpDependencies {
   readonly userPreferencesProvider: IUserPreferencesProvider;
-  readonly musicProvider: IMusicProvider;
+  readonly trackResolver: ITrackResolver;
   readonly trackSelectionStrategy: ITrackSelectionStrategy;
   readonly notificationRegistry: INotificationRegistry;
   readonly clock: IClock;
@@ -27,7 +27,7 @@ export interface SendWakeUpDependencies {
 
 export class SendWakeUpUseCase {
   private readonly userPreferencesProvider: IUserPreferencesProvider;
-  private readonly musicProvider: IMusicProvider;
+  private readonly trackResolver: ITrackResolver;
   private readonly trackSelectionStrategy: ITrackSelectionStrategy;
   private readonly notificationRegistry: INotificationRegistry;
   private readonly clock: IClock;
@@ -39,7 +39,7 @@ export class SendWakeUpUseCase {
 
   constructor(deps: SendWakeUpDependencies) {
     this.userPreferencesProvider = deps.userPreferencesProvider;
-    this.musicProvider = deps.musicProvider;
+    this.trackResolver = deps.trackResolver;
     this.trackSelectionStrategy = deps.trackSelectionStrategy;
     this.notificationRegistry = deps.notificationRegistry;
     this.clock = deps.clock;
@@ -89,16 +89,16 @@ export class SendWakeUpUseCase {
     );
 
     if (!selection.isWeatherCovered) {
+      // Not a degraded mode: using the user's fallback track is a normal business case.
       this.logger.info('Weather not covered in user preferences, using user fallback track', {
         userId: validated.userId,
         weather: validated.weather,
         fallbackQuery: selection.query,
       });
-      degraded = true;
     }
 
     const track = await this.resolveTrackWithCascade(selection.query, preferences.fallbackTrack);
-    if (track.isFallbackCascade) {
+    if (track.degraded) {
       degraded = true;
     }
 
@@ -178,10 +178,10 @@ export class SendWakeUpUseCase {
   private async resolveTrackWithCascade(
     primaryQuery: string,
     userFallbackQuery: string,
-  ): Promise<{ resolvedTrack: Track; isFallbackCascade: boolean }> {
+  ): Promise<{ resolvedTrack: Track; degraded: boolean }> {
     try {
-      const resolved = await this.musicProvider.resolveTrack(primaryQuery);
-      return { resolvedTrack: resolved, isFallbackCascade: false };
+      const resolution = await this.trackResolver.resolve(primaryQuery);
+      return { resolvedTrack: resolution.track, degraded: resolution.degraded };
     } catch (primaryError) {
       this.logger.warn('Failed to resolve primary track query, attempting user fallback', {
         primaryQuery,
@@ -190,8 +190,8 @@ export class SendWakeUpUseCase {
 
       if (primaryQuery !== userFallbackQuery && userFallbackQuery.trim().length > 0) {
         try {
-          const fallbackResolved = await this.musicProvider.resolveTrack(userFallbackQuery);
-          return { resolvedTrack: fallbackResolved, isFallbackCascade: true };
+          const fallbackResolution = await this.trackResolver.resolve(userFallbackQuery);
+          return { resolvedTrack: fallbackResolution.track, degraded: true };
         } catch (fallbackError) {
           this.logger.warn('Failed to resolve user fallback track query as well', {
             userFallbackQuery,
@@ -200,7 +200,6 @@ export class SendWakeUpUseCase {
         }
       }
 
-      // If both fail, let's re-throw or if musicProvider chain didn't catch, fail.
       throw primaryError;
     }
   }
