@@ -1,0 +1,42 @@
+{
+  "name": "reveil-musical",
+  "version": "1.0.0",
+  "description": "Production-grade Musical Alarm orchestrator with strict dependency boundaries and resilience",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "deps:check": "depcruise src --config .dependency-cruiser.cjs",
+    "licenses:check": "license-checker-rseidelsohn --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;WTFPL;CC-BY-3.0;MPL-2.0'",
+    "audit": "npm audit --audit-level=high",
+    "sbom": "cyclonedx-npm --output-file bom.json"
+  },
+  "keywords": [
+    "clean-architecture",
+    "typescript",
+    "dependency-inversion",
+    "resilience",
+    "circuit-breaker"
+  ],
+  "author": "Architect TypeScript",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "6.0.1",
+    "@types/node": "^22.13.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "@vitest/coverage-v8": "5.0.3",
+    "dependency-cruiser": "^16.9.0",
+    "eslint": "^9.20.0",
+    "license-checker-rseidelsohn": "^4.4.2",
+    "typescript": "^5.7.3",
+    "vitest": "5.0.3"
+  }
+}
