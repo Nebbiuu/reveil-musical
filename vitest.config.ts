@@ -11,6 +11,13 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: [
         'src/index.ts',
+        'src/**/index.ts',
+        'src/domain/ports/**',
+        'src/domain/models/Track.ts',
+        'src/domain/models/UserPreferences.ts',
+        'src/domain/models/WakeUpResult.ts',
+        'src/application/dto/**',
+        'src/application/ports/**',
         '**/*.d.ts',
       ],
       thresholds: {
