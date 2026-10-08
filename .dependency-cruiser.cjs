@@ -56,6 +56,20 @@ module.exports = {
       to: {
         path: '^src/composition-root'
       }
+    },
+    {
+      name: 'application-cannot-depend-on-external-modules',
+      severity: 'error',
+      comment: 'Application layer must have zero external library dependencies.',
+      from: { path: '^src/application' },
+      to: { dependencyTypes: ['npm', 'npm-dev'] }
+    },
+    {
+      name: 'pure-layers-cannot-use-node-core',
+      severity: 'error',
+      comment: 'Domain and application must not use Node built-ins; go through ports.',
+      from: { path: '^src/(domain|application)' },
+      to: { dependencyTypes: ['core'] }
     }
   ],
   options: {
