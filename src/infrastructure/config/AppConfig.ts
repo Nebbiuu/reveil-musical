@@ -5,7 +5,7 @@ export interface AppConfig {
   readonly musicBrainzUserAgent: string;
   readonly itunesRateLimitMaxRequests: number;
   readonly itunesRateLimitWindowMs: number;
-  readonly circuitBreakerFailureThreshold: s;
+  readonly circuitBreakerFailureThreshold: number;
   readonly circuitBreakerResetTimeoutMs: number;
   readonly cacheTtlSeconds: number;
   readonly idempotencyTtlSeconds: number;
