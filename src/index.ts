@@ -1,4 +1,4 @@
-import { buildApplicationContainer, ApplicationContainer } from './composition-root/container.js';
+import { ApplicationContainer, buildApplicationContainerFromEnv } from './composition-root/container.js';
 import { DayOfWeek } from './domain/models/DayOfWeek.js';
 import { Weather } from './domain/models/Weather.js';
 import { WakeUpResult } from './domain/models/WakeUpResult.js';
@@ -12,7 +12,7 @@ let defaultContainer: ApplicationContainer | undefined;
 
 function getDefaultContainer(): ApplicationContainer {
   if (!defaultContainer) {
-    defaultContainer = buildApplicationContainer();
+    defaultContainer = buildApplicationContainerFromEnv();
   }
   return defaultContainer;
 }
