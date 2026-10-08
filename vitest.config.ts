@@ -19,6 +19,7 @@ export default defineConfig({
         'src/application/dto/**',
         'src/application/ports/**',
         '**/*.d.ts',
+        'src/demo.ts',
       ],
       thresholds: {
         lines: 85,

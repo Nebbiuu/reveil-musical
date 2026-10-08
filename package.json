@@ -13,7 +13,8 @@
     "deps:check": "depcruise src --config .dependency-cruiser.cjs",
     "licenses:check": "license-checker-rseidelsohn --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;CC0-1.0;Unlicense;Python-2.0;BlueOak-1.0.0;WTFPL;CC-BY-3.0;MPL-2.0'",
     "audit": "npm audit --audit-level=high",
-    "sbom": "cyclonedx-npm --output-file bom.json"
+    "sbom": "cyclonedx-npm --output-file bom.json",
+    "demo": "npm run build && node dist/demo.js"
   },
   "keywords": [
     "clean-architecture",
